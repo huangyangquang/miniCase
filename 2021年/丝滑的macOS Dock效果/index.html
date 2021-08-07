@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>丝滑的macOS Dock效果</title>
+	<style>
+		html {
+		  font-size: 15px;
+		}
+
+		body {
+		  margin: 0;
+		  padding: 0;
+		  display: flex;
+		  align-items: flex-end;
+		  width: 100%;
+		  min-height: 100vh;
+		  overflow: hidden;
+		  background-image: linear-gradient( 109.6deg,  rgba(25,170,209,1) 11.3%, rgba(21,65,249,1) 69.9% );
+		}
+
+		.glass {
+		  width: 100%;
+		  height: 8rem;
+		  background: rgba( 255, 255, 255, 0.25 );
+		  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+		  backdrop-filter: blur( 4px ); 
+		  -webkit-backdrop-filter: blur( 4px );
+		  border: 1px solid rgba( 255, 255, 255, 0.18 );
+		  display: flex;
+		  justify-content: center;
+		}
+
+		.dock {
+		  --scale: 1;
+		  
+		  list-style: none;
+		  margin: 0;
+		  padding: 0;
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		}
+
+		.dock li {
+		  font-size: calc(6rem * var(--scale)); /*因为表情作为文本元素，所以可以直接使用font-size来设置大小*/
+		  padding: 0 .5rem;
+		  cursor: default;
+		  
+		  position: relative;
+		  top: calc((6rem * var(--scale) - 6rem) / 2 * -1);
+		  
+		  transition: 15ms all ease-out;
+		}
+
+		.dock li.loading {
+		  animation: 1s loading ease-in infinite;
+		}
+
+		@keyframes loading {
+		  0%, 100% {
+		    transform: translateY(0px);
+		  }
+		  60% {
+		    transform: translateY(-40px);
+		  }
+		}
+	</style>
+</head>
+<body>
+	<div class="glass">
+		<ul class="dock">
+			<li>😃</li>
+		    <li>😊</li>
+		    <li>😜</li>
+		    <li>😍</li>
+		    <li>🤩</li>
+		    <li>🥳</li>
+		    <li>🥶</li>
+		</ul>
+	</div>
+	<script type="text/javascript">
+		document.querySelectorAll('.dock li').forEach(li => {
+
+		  // 点击表情时，加上类名：loading
+		  li.addEventListener('click', e => {
+		    e.currentTarget.classList.add('loading')
+		  })
+		  
+		  // 鼠标在表情上移动时
+		  li.addEventListener('mousemove', e => {
+		    let item = e.target
+		    // 计算鼠标在目标元素内的水平方向上的位置百分比
+		    let offset = getCursorPositionPercentage(e, item).x_Percentage
+		    
+		    let prev = item.previousElementSibling || null
+		    let next = item.nextElementSibling || null
+		    
+		    let scale = 0.6
+		    
+		    resetScale()
+		    
+		    if (prev) { // 前一个兄弟节点的放大倍数
+		      prev.style.setProperty('--scale', 1 + scale * Math.abs(offset - 1))
+		    }
+		    
+		    // 当前节点的放大倍数
+		    item.style.setProperty('--scale', 1 + scale)
+		    
+		    if (next) { // 后一个兄弟节点的放大倍数
+		      next.style.setProperty('--scale', 1 + scale * offset)
+		    }
+		  })
+		})
+
+		document.querySelector('.dock').addEventListener('mouseleave', e => {
+		  resetScale()
+		})
+
+		function resetScale() {
+		  document.querySelectorAll('.dock li').forEach(li => {
+		    li.style.setProperty('--scale', 1)
+		  })
+		}
+
+
+
+
+		/**
+		 * [getCursorPositionPercentage 获取鼠标在某个元素内，水平/垂直位置上，相对于该元素元素大小的百分比]
+		 * @Author   huangfengquan-Joshua
+		 * @DateTime 2021-05-05T01:46:13+0800
+		 * @param    {[object]}                 e      [事件源对象]
+		 * @param    {[object]}                 target [鼠标在哪个元素内移动]
+		 * @return   {[object]}                        [鼠标在target元素内，水平、垂直方向上，相对于target元素大小的百分比；正常取值在0-1之间，如果鼠标在元素之外，则是-1 或者事件不触发]
+		 */
+		function getCursorPositionPercentage (e, target) {
+			let item = target || e.target
+		    let itemRect = item.getBoundingClientRect()
+		    // 计算鼠标在目标元素内的 水平/垂直 方向上的位置百分比
+		    let x_Percentage = Math.abs(e.clientX - itemRect.left) / itemRect.width
+		    let y_Percentage = Math.abs(e.clientY - itemRect.top) / itemRect.height
+
+		    return {
+		    	x_Percentage: x_Percentage > 1 || y_Percentage > 1 ? -1 : x_Percentage,
+		    	y_Percentage: x_Percentage > 1 || y_Percentage > 1 ? -1 : y_Percentage
+		    };
+		}
+	</script>
+</body>@
+</html>
